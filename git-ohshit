@@ -15,6 +15,7 @@ branch <branch> [n]   make the last n commits on <branch> instead of the current
 commit                undo the last commit
 fuck                  HARD reset current branch to remote branch
 merge                 undo the last merge
+push [n] [--force]    undo the last n commits before a push, then re-push [force]
 rebase                undo the last rebase
 reset                 undo the last reset"
 }
@@ -64,6 +65,22 @@ merge() {
     echo "No merge just completed"
     return 2
   fi
+}
+
+push() {
+  commits=${1:-1}
+
+  case $2 in
+    -f|--force|force)
+      giti reset --hard HEAD~"${commits}" || return $?
+      giti push -f
+      ;;
+    *)
+      giti revert --no-commit HEAD~"${commits}".. || return $?
+      giti revert --continue || return $?
+      giti push
+      ;;
+  esac
 }
 
 rebase() {
@@ -128,6 +145,9 @@ main() {
         ;;
       merge)
         merge
+        ;;
+      push)
+        push "$@"
         ;;
       rebase)
         rebase
