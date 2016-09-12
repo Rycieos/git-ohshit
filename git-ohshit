@@ -1,0 +1,124 @@
+#!/bin/sh
+
+# Prints the git commands we run, for learning
+giti() {
+  echo "git $*"
+  git "$@"
+}
+
+usage() {
+  echo "\
+usage: git ohshit <subcommand>
+
+The subcommands are:
+commit
+push
+rebase
+merge"
+}
+
+test_() {
+  [ "$last_action" = "$1" ]
+}
+
+test_rebase() {
+  [ -d "${repo_root}/.git/rebase-apply" ]
+}
+
+git_reset_hard() {
+  giti reset --hard "HEAD@{1}"
+}
+
+commit() {
+  if test_commit; then
+    giti reset --soft HEAD~1
+  else
+    echo "No commit just completed"
+    return 2
+  fi
+}
+
+merge() {
+  if test_merge; then
+    giti reset --merge ORIG_HEAD
+  else
+    echo "No merge just completed"
+    return 2
+  fi
+}
+
+rebase() {
+  if test_rebase; then
+    giti rebase --abort
+  elif test_ "rebase"; then
+    git_reset_hard
+  else
+    echo "No rebase in progress or just completed"
+    return 2
+  fi
+}
+
+reset() {
+  if test_ "reset"; then
+    git_reset_hard
+  else
+    echo "No reset just completed"
+    return 2
+  fi
+}
+
+ohshit() {
+  # Check if we are in the middle of something
+  if test_ "commit"; then
+    commit
+  elif test_ "merge"; then
+    merge
+  elif test_ "rebase" || test_rebase; then
+    rebase
+  elif test_ "reset"; then
+    reset
+  else
+    echo "Failed to detect correct action to fix"
+    usage
+    return 3
+  fi
+}
+
+main() {
+  subcommand="$1"
+  shift
+
+  last_head="$(git reflog --word-diff=porcelain --oneline -1)"
+  last_sha="$(echo "$last_head" | sed 's/[^0-9a-f].*$//')"
+  last_action="$(echo "$last_head" | sed 's/.*}: \([A-Za-z ~0-9]*\): .*/\1/')"
+
+  repo_root="$(git rev-parse --show-toplevel)"
+
+  if [ -z "$subcommand" ]; then
+    ohshit
+  else
+    case $subcommand in
+      "-h"|"--help")
+        usage
+        ;;
+      commit)
+        commit
+        ;;
+      merge)
+        merge
+        ;;
+      rebase)
+        rebase
+        ;;
+      reset)
+        reset
+        ;;
+      *)
+        echo "git ohshit: '$subcommand' is not an ohshit command. See 'git ohshit --help'"
+        return 1
+        ;;
+    esac
+  fi
+}
+
+main "$@"
