@@ -11,10 +11,12 @@ usage() {
 usage: git ohshit <subcommand>
 
 The subcommands are:
-commit
-push
-rebase
-merge"
+branch <branch> [n]   make the last n commits on <branch> instead of the current branch
+commit                undo the last commit
+fuck                  HARD reset current branch to remote branch
+merge                 undo the last merge
+rebase                undo the last rebase
+reset                 undo the last reset"
 }
 
 # Test if last_action contains search string
@@ -27,6 +29,19 @@ test_rebase() {
   [ -d "${repo_root}/.git/rebase-merge" ]
 }
 
+branch() {
+  if [ -z "$1" ]; then
+    echo "Need to specify branch name to commit to"
+    return 1
+  fi
+
+  commits=${2:-1}
+
+  giti branch "$1" || return $?
+  giti reset --hard HEAD~"${commits}" || return $?
+  giti checkout "$1"
+}
+
 commit() {
   if test_ "commit"; then
     giti reset --soft HEAD~1
@@ -34,6 +49,12 @@ commit() {
     echo "No commit just completed"
     return 2
   fi
+}
+
+fuck() {
+  giti fetch || return $?
+  giti reset --hard "@{upstream}" || return $?
+  giti clean -ffdqx
 }
 
 merge() {
@@ -66,7 +87,7 @@ reset() {
 }
 
 ohshit() {
-  # Check if we are in the middle of something
+  # Check if there is anything obvious to undo
   if test_ "commit"; then
     commit
   elif test_ "merge"; then
@@ -99,8 +120,14 @@ main() {
       "-h"|"--help")
         usage
         ;;
+      branch)
+        branch "$@"
+        ;;
       commit)
         commit
+        ;;
+      fuck)
+        fuck
         ;;
       merge)
         merge
