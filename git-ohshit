@@ -21,7 +21,7 @@ reset                 undo the last reset"
 
 # Test if last_action contains search string
 test_() {
-  [ "${last_action#*$1}" != "$last_action" ]
+  [ "${reflog_action#*$1}" != "$reflog_action" ]
 }
 
 test_rebase() {
@@ -107,10 +107,7 @@ main() {
   subcommand="$1"
   shift
 
-  last_head="$(git reflog --word-diff=porcelain --oneline -1)"
-  last_sha="$(echo "$last_head" | sed 's/[^0-9a-f].*$//')"
-  last_action="$(echo "$last_head" | sed 's/.*}: \([A-Za-z ~0-9]*\): .*/\1/')"
-
+  reflog_action="$(git log -g --pretty=format:"%gs" -1)"
   repo_root="$(git rev-parse --show-toplevel)"
 
   if [ -z "$subcommand" ]; then
