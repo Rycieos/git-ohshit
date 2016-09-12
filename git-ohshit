@@ -17,20 +17,18 @@ rebase
 merge"
 }
 
+# Test if last_action contains search string
 test_() {
-  [ "$last_action" = "$1" ]
+  [ "${last_action#*$1}" != "$last_action" ]
 }
 
 test_rebase() {
-  [ -d "${repo_root}/.git/rebase-apply" ]
-}
-
-git_reset_hard() {
-  giti reset --hard "HEAD@{1}"
+  [ -d "${repo_root}/.git/rebase-apply" ] ||
+  [ -d "${repo_root}/.git/rebase-merge" ]
 }
 
 commit() {
-  if test_commit; then
+  if test_ "commit"; then
     giti reset --soft HEAD~1
   else
     echo "No commit just completed"
@@ -39,7 +37,7 @@ commit() {
 }
 
 merge() {
-  if test_merge; then
+  if test_ "merge"; then
     giti reset --merge ORIG_HEAD
   else
     echo "No merge just completed"
@@ -51,7 +49,7 @@ rebase() {
   if test_rebase; then
     giti rebase --abort
   elif test_ "rebase"; then
-    git_reset_hard
+    giti reset --hard ORIG_HEAD
   else
     echo "No rebase in progress or just completed"
     return 2
@@ -60,7 +58,7 @@ rebase() {
 
 reset() {
   if test_ "reset"; then
-    git_reset_hard
+    giti reset --hard "HEAD@{1}"
   else
     echo "No reset just completed"
     return 2
