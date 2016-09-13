@@ -12,7 +12,7 @@ usage: git ohshit <subcommand>
 
 The subcommands are:
 branch <branch> [n]   make the last n commits on <branch> instead of the current branch
-commit                undo the last commit
+commit [n]            undo the last n commits
 fuck                  HARD reset current branch to remote branch
 merge                 undo the last merge
 push [n] [--force]    undo the last n commits before a push, then re-push [force]
@@ -44,12 +44,9 @@ branch() {
 }
 
 commit() {
-  if test_ "commit"; then
-    giti reset --soft HEAD~1
-  else
-    echo "No commit just completed"
-    return 2
-  fi
+  commits=${1:-1}
+
+  giti reset --soft HEAD~"${commits}"
 }
 
 fuck() {
@@ -59,12 +56,7 @@ fuck() {
 }
 
 merge() {
-  if test_ "merge"; then
-    giti reset --merge ORIG_HEAD
-  else
-    echo "No merge just completed"
-    return 2
-  fi
+  giti reset --merge ORIG_HEAD
 }
 
 push() {
@@ -95,12 +87,7 @@ rebase() {
 }
 
 reset() {
-  if test_ "reset"; then
-    giti reset --hard "HEAD@{1}"
-  else
-    echo "No reset just completed"
-    return 2
-  fi
+  giti reset --hard "HEAD@{1}"
 }
 
 ohshit() {
