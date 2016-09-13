@@ -17,7 +17,7 @@ fuck                  HARD reset current branch to remote branch
 merge                 undo the last merge
 push [n] [--force]    undo the last n commits before a push, then re-push [force]
 rebase                undo the last rebase
-reset                 undo the last reset"
+reset [n]             undo the last reset or n actions (from reflog)"
 }
 
 # Test if last_action contains search string
@@ -87,7 +87,9 @@ rebase() {
 }
 
 reset() {
-  giti reset --hard "HEAD@{1}"
+  refs=${1:-1}
+
+  giti reset --hard "HEAD@{${refs}}"
 }
 
 ohshit() {
@@ -125,7 +127,7 @@ main() {
         branch "$@"
         ;;
       commit)
-        commit
+        commit "$@"
         ;;
       fuck)
         fuck
@@ -140,7 +142,7 @@ main() {
         rebase
         ;;
       reset)
-        reset
+        reset "$@"
         ;;
       *)
         echo "git ohshit: '$subcommand' is not an ohshit command. See 'git ohshit --help'"

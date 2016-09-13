@@ -5,9 +5,10 @@ git-ohshit will attempt to "undo" the stupid thing you did. It will detect what
 the last change was and run the correct git command to put the repo back the way
 it was. Note that this is not a true undo; as git will never delete a commit,
 just remove a reference to it. It will also only "undo" the very last thing that
-was done in a repo; it will not fix things in the past, as such things can get
-extremely complicated and this is meant to be a simple command; along the lines
-of `sudo !!`.
+was done in a repo by default; it will not fix things in the past, as such
+things can get extremely complicated and this is meant to be a simple command;
+along the lines of `sudo !!`. Calling with a subcommand can "undo" things
+farther in the past, use with care!
 
 Note: Doing a `git ohshit` after a `git ohshit` should simply undo the first.
 
