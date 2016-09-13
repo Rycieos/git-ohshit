@@ -17,7 +17,7 @@ fuck                  HARD reset current branch to remote branch
 merge                 undo the last merge
 push [n] [--force]    undo the last n commits before a push, then re-push [force]
 rebase                undo the last rebase
-reset [n]             undo the last reset or n actions (from reflog)"
+reset [n]             undo the last n actions (from reflog)"
 }
 
 # Test if last_action contains search string
@@ -100,7 +100,7 @@ ohshit() {
     merge
   elif test_ "rebase" || test_rebase; then
     rebase
-  elif test_ "reset"; then
+  elif test_ "reset" || test_ "pull"; then
     reset
   else
     echo "Failed to detect correct action to fix"
